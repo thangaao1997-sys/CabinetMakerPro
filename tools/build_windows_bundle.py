@@ -29,6 +29,7 @@ SOURCES = (
     "examples/scene.json",
     "WINDOWS_V14.md",
     "V15_DIAGNOSTICS.md",
+    "V16_V17_MODEL_SAFETY.md",
     "windows/AI_IDEA_CHECK.cmd",
 )
 DESTINATIONS = {
