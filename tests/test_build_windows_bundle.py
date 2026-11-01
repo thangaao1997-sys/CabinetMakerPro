@@ -25,6 +25,7 @@ class WindowsStarterTests(unittest.TestCase):
             self.assertIn("tools/windows_preflight.py", bundle.namelist())
             self.assertIn("core/command_center.py", bundle.namelist())
             self.assertIn("V15_DIAGNOSTICS.md", bundle.namelist())
+            self.assertIn("V16_V17_MODEL_SAFETY.md", bundle.namelist())
             self.assertEqual(bundle.read("AI_IDEA_V1_ALPHA.rbz"), self.rbz.read_bytes())
             self.assertIsNone(bundle.testzip())
 
