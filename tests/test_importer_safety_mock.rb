@@ -99,6 +99,11 @@ root = AIIDEA::SceneImporter.import_file(fixture)
 assert(model.started && model.committed, 'Normal import was not committed')
 assert(root.entities.groups.size == 5, 'Normal import must create 5 panels')
 assert(root.attributes[['AI_IDEA','manufacturing_approved']] == false, 'Draft flag wrong')
+scene = JSON.parse(File.read(fixture, encoding: 'UTF-8'))
+assert(root.attributes[['AI_IDEA','scene_schema']] == 'ai-idea.scene.v1', 'Missing scene schema metadata')
+assert(root.attributes[['AI_IDEA','expected_parts_count']] == scene['objects'].size, 'Missing panel count metadata')
+expected = scene['objects'].first['size_mm'].values_at('x','y','z')
+assert(root.entities.groups.first.attributes[['AI_IDEA','expected_size_mm']] == expected, 'Panel dimensions not recorded')
 
 populated = SafeMockModel.new
 populated.entities.add_group
@@ -134,4 +139,4 @@ begin
 rescue ArgumentError
 end
 
-puts 'AI IDEA model-protection smoke: 7/7'
+puts 'AI IDEA model-protection smoke: 8/8'
