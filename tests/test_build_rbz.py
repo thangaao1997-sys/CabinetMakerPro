@@ -9,11 +9,11 @@ class RBZBuildTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             output=Path(td)/"AI_IDEA.rbz"
             result=build(output)
-            self.assertEqual(result["files"],3)
+            self.assertEqual(result["files"],4)
             self.assertEqual(len(result["sha256"]),64)
             with zipfile.ZipFile(output) as z:
                 self.assertEqual(sorted(z.namelist()),sorted([
-                    "ai_idea_v10.rb","ai_idea_v10/main.rb","ai_idea_v10/scene_importer.rb"]))
+                    "ai_idea_v10.rb","ai_idea_v10/main.rb","ai_idea_v10/scene_importer.rb","ai_idea_v10/diagnostics.rb"]))
                 self.assertIsNone(z.testzip())
                 self.assertIn(b"SketchupExtension.new",z.read("ai_idea_v10.rb"))
     def test_reproducible_archive(self):
