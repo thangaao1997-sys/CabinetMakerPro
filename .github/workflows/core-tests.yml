@@ -24,3 +24,5 @@ jobs:
         run: ruby -c sketchup/ai_idea_scene_importer.rb
       - name: Check Ruby scene parsing
         run: ruby tests/test_scene_parser.rb
+      - name: Simulated SketchUp import
+        run: ruby tests/test_importer_mock.rb
