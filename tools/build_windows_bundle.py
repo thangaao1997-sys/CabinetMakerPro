@@ -28,6 +28,7 @@ SOURCES = (
     "examples/kitchen_command.json",
     "examples/scene.json",
     "WINDOWS_V14.md",
+    "V15_DIAGNOSTICS.md",
     "windows/AI_IDEA_CHECK.cmd",
 )
 DESTINATIONS = {
