@@ -1,6 +1,7 @@
 # encoding: UTF-8
 require 'sketchup.rb'
 require_relative 'scene_importer'
+require_relative 'diagnostics'
 module AIIDEA
   unless defined?(@menu_registered) && @menu_registered
     UI.menu('Extensions').add_item('AI IDEA - Import DRAFT scene (JSON)') do
@@ -11,6 +12,13 @@ module AIIDEA
         UI.messagebox("AI IDEA: Imported draft #{root.name}. Not approved for manufacturing.")
       rescue StandardError => e
         UI.messagebox("AI IDEA import failed: #{e.class}: #{e.message}")
+      end
+    end
+    UI.menu('Extensions').add_item('AI IDEA - Diagnostics (READ ONLY)') do
+      begin
+        AIIDEA::Diagnostics.run_gui
+      rescue StandardError => e
+        UI.messagebox("AI IDEA diagnostics failed: #{e.class}: #{e.message}")
       end
     end
     @menu_registered=true
