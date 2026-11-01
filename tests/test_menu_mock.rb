@@ -39,6 +39,7 @@ require_relative '../plugin/ai_idea_v10/main'
 callbacks = UI.menu('Extensions').callbacks
 raise 'Import menu missing' unless callbacks.key?('AI IDEA - Import DRAFT scene (JSON)')
 raise 'Diagnostic menu missing' unless callbacks.key?('AI IDEA - Diagnostics (READ ONLY)')
+raise 'Model audit menu missing' unless callbacks.key?('AI IDEA - Audit selected DRAFT (READ ONLY)')
 callbacks['AI IDEA - Diagnostics (READ ONLY)'].call
 raise 'Diagnostic message missing' unless UI.messages.any? { |msg| msg.include?('No model changes performed') }
-puts 'AI IDEA menu smoke mock: 3/3'
+puts 'AI IDEA menu smoke mock: 4/4'
