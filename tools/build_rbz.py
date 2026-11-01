@@ -14,6 +14,7 @@ FILES = (
     "plugin/ai_idea_v10.rb",
     "plugin/ai_idea_v10/main.rb",
     "plugin/ai_idea_v10/scene_importer.rb",
+    "plugin/ai_idea_v10/diagnostics.rb",
 )
 
 def build(output, root=ROOT):
