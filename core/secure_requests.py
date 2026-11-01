@@ -5,6 +5,7 @@ modification, start a network listener, or execute machine commands.
 Python standard library only.
 """
 import hashlib
+from contextlib import closing
 import hmac
 import json
 import re
@@ -83,7 +84,7 @@ class SQLiteNonceLedger:
             raise EnvelopeError("Replay-ledger symlinks are not accepted")
         self.path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            with sqlite3.connect(str(self.path), timeout=10) as con:
+            with closing(sqlite3.connect(str(self.path), timeout=10)) as con, con:
                 con.execute("BEGIN IMMEDIATE")
                 con.execute(
                     "CREATE TABLE IF NOT EXISTS used_nonces ("
