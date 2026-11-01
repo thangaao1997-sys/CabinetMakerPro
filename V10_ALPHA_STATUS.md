@@ -1,30 +1,33 @@
-# AI IDEA V1.0-alpha — Offline bridge build
+# AI IDEA V1.0.1-alpha — source synchronized
 
-Build date: 2026-11-01.
+## GitHub source now available
+- `core/`: validated commands, draft parts, collision checks, scene export and preview cutting data
+- `bridge.py`: offline file-based command-to-scene converter
+- `plugin/ai_idea_v10.rb` + `plugin/ai_idea_v10/`: SketchUp extension entry point and scene importer
+- `tests/`: Python unit tests, Ruby parser and mock import tests
+- `examples/kitchen_command.json`: 600×560×820 mm draft test case
+- `.github/workflows/core-tests.yml`: test workflow configuration
 
-## Delivered artifacts
-- `AI_IDEA_V1_0_ALPHA.rbz`: SketchUp extension with an Extensions-menu JSON scene picker (available as an attachment in the AI IDEA chat)
-- `AI_IDEA_V1_0_ALPHA_SOURCE.zip`: full source including `bridge.py`, tests and example requests (available in the chat)
-- Source artifacts are not yet fully imported into this GitHub branch; this is a status marker only.
+## Local verification (November 1, 2026)
+- Python: 28 tests passed in the local environment
+- Ruby parser: 6 checks passed
+- Ruby mock import: 4 checks passed
+- Ruby syntax: all 3 packaged files passed
+- Manual CLI smoke test: generated a 5-object scene with manufacturing_approved=false
+- RBZ and source ZIP: archive integrity verified
 
-## Verified outside SketchUp
-- 28/28 Python tests passed (includes previous V0.9 suite and new file-drop bridge tests)
-- 6/6 Ruby parser checks passed
-- 4/4 Ruby mocked SketchUp import checks passed
-- Ruby syntax checks passed for all RBZ scripts
-- ZIP archive integrity checked
+## Unverified deployment
+- No GitHub Actions run success confirmed yet.
+- No installation or execution inside SketchUp 2025 on Windows confirmed.
+- No live iPhone-to-Windows integration.
+- No production CNC tooling or approval.
 
-## What the package does
-Manual Windows file workflow: validated command JSON -> Python CLI bridge -> draft scene JSON -> explicit selection in SketchUp extension -> draft box groups.
+## Safety
+The sample configuration assumes overlay back, full-height sides and a virtual base allocation. It is NOT an approved IDEA construction method.
+The generated geometry and cutting-preview data are NOT production-ready. The installer requires explicit manual JSON selection.
 
-No HTTP service, no public network listener, no remote phone control.
-No production approval, CNC export or automatic machining.
-Construction and base geometry remain unapproved prototype assumptions.
-
-## Real-world gate
-Before considering the plugin validated, test the RBZ in SketchUp 2025 on Windows. Do not assume mock API behavior guarantees production application compatibility.
-
-## Next
-- Import source files into this development branch after parity verification.
-- Add diagnostics and signed command provenance if future network services are authorized.
-- Obtain workshop decisions for joinery, setbacks, hinge/slide hardware and edge banding before production output.
+## Immediate next gates
+1. Confirm CI via GitHub Actions page.
+2. Smoke-test extension loading in actual SketchUp 2025.
+3. Establish authenticated, least-privilege machine communication ONLY when a Windows-side endpoint is available and explicitly connected.
+4. Confirm workshop joint construction, back attachment, edges and hardware before enabling production output.
