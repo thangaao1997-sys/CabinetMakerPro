@@ -20,9 +20,21 @@ jobs:
         run: python -m compileall -q core tests
       - name: Test Python pipeline
         run: python -m unittest discover -s tests -v
-      - name: Check Ruby syntax
-        run: ruby -c sketchup/ai_idea_scene_importer.rb
+      - name: Check packaged Ruby syntax
+        run: |
+          ruby -c plugin/ai_idea_v10.rb
+          ruby -c plugin/ai_idea_v10/main.rb
+          ruby -c plugin/ai_idea_v10/scene_importer.rb
+          ruby -c sketchup/ai_idea_scene_importer.rb
       - name: Check Ruby scene parsing
         run: ruby tests/test_scene_parser.rb
       - name: Simulated SketchUp import
         run: ruby tests/test_importer_mock.rb
+      - name: Build reproducible SketchUp extension
+        run: python -m tools.build_rbz --output dist/AI_IDEA_V1_ALPHA.rbz
+      - name: Upload RBZ artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AI_IDEA_V1_ALPHA_RBZ
+          path: dist/AI_IDEA_V1_ALPHA.rbz
+          if-no-files-found: error
