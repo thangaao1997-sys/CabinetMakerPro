@@ -1,11 +1,15 @@
-# AI IDEA DRAFT scene importer: not production approved, no CNC.
+# encoding: UTF-8
+# AI IDEA draft scene importer: only into a new, unsaved, empty model.
+# No production approval, no CNC, and no remote network actions.
 require 'json'
 module AIIDEA
   module SceneImporter
     module_function
+
     def finite_number(x, positive=false)
       x.is_a?(Numeric) && x.finite? && x >= 0 && (!positive || x > 0)
     end
+
     def parse_scene(text)
       data=JSON.parse(text)
       raise ArgumentError,'Invalid schema or units' unless data.is_a?(Hash) && data['schema_version']=='ai-idea.scene.v1' && data['units']=='mm'
@@ -40,11 +44,27 @@ module AIIDEA
       end
       data
     end
+
+    def ensure_safe_target!(model)
+      raise ArgumentError, 'No active SketchUp model' unless model
+      required = [:entities, :active_entities, :active_path, :path, :get_attribute]
+      raise ArgumentError, 'Cannot verify model safety' unless required.all? { |method| model.respond_to?(method) }
+      raise ArgumentError, 'Open a NEW unsaved empty model for AI IDEA drafts' unless model.path.to_s.empty?
+      raise ArgumentError, 'Exit group/component editing first' unless model.active_path.nil?
+      root_entities = model.entities
+      raise ArgumentError, 'Cannot verify root entities' unless root_entities.respond_to?(:to_a) && model.active_entities == root_entities
+      raise ArgumentError, 'Current model is NOT empty; refusing to change it' unless root_entities.to_a.empty?
+      locked = model.get_attribute('AI_IDEA', 'design_locked', false)
+      raise ArgumentError, 'Model is explicitly locked' unless locked == false || locked.nil?
+      true
+    end
+
     def import_file(path)
-      raise ArgumentError,'File too large' if File.size(path)>128_000
+      raise ArgumentError, 'Only a regular JSON file is accepted' unless File.file?(path) && !File.symlink?(path) && File.extname(path).downcase == '.json'
+      raise ArgumentError, 'File too large' if File.size(path)>128_000
       scene=parse_scene(File.read(path,encoding:'UTF-8'))
       model=Sketchup.active_model
-      raise 'No active model' unless model
+      ensure_safe_target!(model)
       model.start_operation('AI IDEA DRAFT Import',true)
       begin
         root=model.active_entities.add_group
@@ -65,7 +85,7 @@ module AIIDEA
         end
         model.commit_operation
         root
-      rescue Exception
+      rescue StandardError
         model.abort_operation
         raise
       end
