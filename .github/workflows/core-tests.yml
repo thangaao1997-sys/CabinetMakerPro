@@ -26,6 +26,7 @@ jobs:
           ruby -c plugin/ai_idea_v10/main.rb
           ruby -c plugin/ai_idea_v10/scene_importer.rb
           ruby -c plugin/ai_idea_v10/diagnostics.rb
+          ruby -c plugin/ai_idea_v10/model_audit.rb
           ruby -c sketchup/ai_idea_scene_importer.rb
       - name: Check Ruby scene parsing
         run: ruby tests/test_scene_parser.rb
@@ -35,6 +36,8 @@ jobs:
         run: ruby tests/test_diagnostics_mock.rb
       - name: Test SketchUp menu registration mock
         run: ruby tests/test_menu_mock.rb
+      - name: Test SketchUp selected-draft dimensions (Ruby mock)
+        run: ruby tests/test_model_audit_mock.rb
       - name: Build reproducible SketchUp extension
         run: python -m tools.build_rbz --output dist/AI_IDEA_V1_ALPHA.rbz
       - name: Upload RBZ artifact
@@ -70,6 +73,6 @@ jobs:
       - name: Upload Windows starter
         uses: actions/upload-artifact@v4
         with:
-          name: AI_IDEA_V15_WINDOWS_STARTER
+          name: AI_IDEA_V17_WINDOWS_STARTER
           path: dist/AI_IDEA_WINDOWS_STARTER.zip
           if-no-files-found: error
