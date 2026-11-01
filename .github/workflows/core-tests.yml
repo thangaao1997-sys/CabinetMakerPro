@@ -1,10 +1,10 @@
-name: AI IDEA core validation
+name: AI IDEA validation
 on:
   push:
     branches: [main, "develop/**"]
   pull_request:
 jobs:
-  python-tests:
+  verify:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -13,7 +13,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Check syntax
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+      - name: Check Python syntax
         run: python -m compileall -q core tests
-      - name: Run core tests
+      - name: Test Python pipeline
         run: python -m unittest discover -s tests -v
+      - name: Check Ruby syntax
+        run: ruby -c sketchup/ai_idea_scene_importer.rb
+      - name: Check Ruby scene parsing
+        run: ruby tests/test_scene_parser.rb
