@@ -70,6 +70,8 @@ module AIIDEA
         root=model.active_entities.add_group
         root.name="AI IDEA DRAFT - #{scene['request_id']}"
         root.set_attribute('AI_IDEA','manufacturing_approved',false)
+        root.set_attribute('AI_IDEA','scene_schema','ai-idea.scene.v1')
+        root.set_attribute('AI_IDEA','expected_parts_count',scene['objects'].length)
         scene['objects'].each do |obj|
           pos=%w[x y z].map{|k|obj['origin_mm'][k].mm}
           size=%w[x y z].map{|k|obj['size_mm'][k].mm}
@@ -77,6 +79,7 @@ module AIIDEA
           group.name=obj['id']
           group.set_attribute('AI_IDEA','role',obj['role'])
           group.set_attribute('AI_IDEA','material',obj['material'])
+          group.set_attribute('AI_IDEA','expected_size_mm',%w[x y z].map{|axis|obj['size_mm'][axis]})
           face=group.entities.add_face([[0,0,0],[size[0],0,0],[size[0],size[1],0],[0,size[1],0]])
           raise 'Face creation failed' unless face
           face.reverse! if face.normal.z<0
