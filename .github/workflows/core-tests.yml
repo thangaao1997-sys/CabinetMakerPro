@@ -1,0 +1,19 @@
+name: AI IDEA core validation
+on:
+  push:
+    branches: [main, "develop/**"]
+  pull_request:
+jobs:
+  python-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Check syntax
+        run: python -m compileall -q core tests
+      - name: Run core tests
+        run: python -m unittest discover -s tests -v
