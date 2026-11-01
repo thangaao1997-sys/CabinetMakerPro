@@ -25,11 +25,14 @@ jobs:
           ruby -c plugin/ai_idea_v10.rb
           ruby -c plugin/ai_idea_v10/main.rb
           ruby -c plugin/ai_idea_v10/scene_importer.rb
+          ruby -c plugin/ai_idea_v10/diagnostics.rb
           ruby -c sketchup/ai_idea_scene_importer.rb
       - name: Check Ruby scene parsing
         run: ruby tests/test_scene_parser.rb
       - name: Simulated SketchUp import
         run: ruby tests/test_importer_mock.rb
+      - name: Test read-only diagnostic module
+        run: ruby tests/test_diagnostics_mock.rb
       - name: Build reproducible SketchUp extension
         run: python -m tools.build_rbz --output dist/AI_IDEA_V1_ALPHA.rbz
       - name: Upload RBZ artifact
