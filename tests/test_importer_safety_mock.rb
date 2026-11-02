@@ -12,10 +12,11 @@ module Geom
 end
 
 class SafeMockFace
-  def initialize(fail: false, parent: nil, points: nil)
+  def initialize(fail: false, parent: nil, points: nil, tamper: false)
     @fail=fail
     @parent=parent
     @points=points
+    @tamper=tamper
   end
   def normal; Struct.new(:z).new(1); end
   def pushpull(height)
@@ -24,13 +25,16 @@ class SafeMockFace
     width=@points[1][0]-@points[0][0]
     depth=@points[2][1]-@points[1][1]
     @parent.geometry=MockPanelGeometry.box(width,depth,height)
+    if @tamper
+      @parent.geometry << MockPanelGeometry::Edge.new([1,1,height],[2,1,height])
+    end
   end
 end
 class SafeMockGroup
   attr_accessor :name
   attr_reader :entities, :attributes
-  def initialize(fail: false)
-    @entities = SafeMockEntities.new(fail: fail)
+  def initialize(fail: false, tamper: false)
+    @entities = SafeMockEntities.new(fail: fail, tamper: tamper)
     @attributes = {}
     @matrix = [1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0]
   end
@@ -44,27 +48,28 @@ end
 class SafeMockEntities
   attr_reader :groups
   attr_accessor :geometry
-  def initialize(fail: false)
+  def initialize(fail: false, tamper: false)
     @groups=[]
     @geometry=[]
     @fail=fail
+    @tamper=tamper
   end
   def add_group
-    group = SafeMockGroup.new(fail: @fail)
+    group = SafeMockGroup.new(fail: @fail, tamper: @tamper)
     @groups << group
     group
   end
   def add_face(points)
     raise 'invalid face' unless points.length == 4
-    SafeMockFace.new(fail: @fail, parent: self, points: points)
+    SafeMockFace.new(fail: @fail, parent: self, points: points, tamper: @tamper)
   end
   def to_a; @groups.dup+@geometry; end
 end
 class SafeMockModel
   attr_accessor :path, :active_path, :locked
   attr_reader :entities, :started, :committed, :aborted
-  def initialize(fail: false)
-    @entities = SafeMockEntities.new(fail: fail)
+  def initialize(fail: false, tamper: false)
+    @entities = SafeMockEntities.new(fail: fail, tamper: tamper)
     @path = ''
     @active_path = nil
     @locked = false
@@ -157,6 +162,19 @@ end
 assert(broken.aborted && !broken.committed, 'Failed import did not abort transaction')
 assert(broken.entities.groups.empty?, 'Failed import left geometry')
 
+# Geometry with an internal edge must abort the whole import even if its
+# bounding box and nominal dimensions are unchanged.
+tampered = SafeMockModel.new(tamper: true)
+Sketchup.active_model = tampered
+begin
+  AIIDEA::SceneImporter.import_file(fixture)
+  raise 'Expected bad geometry import to be rejected'
+rescue RuntimeError => e
+  raise if e.message == 'Expected bad geometry import to be rejected'
+end
+assert(tampered.aborted && !tampered.committed, 'Geometry mismatch did not abort')
+assert(tampered.entities.groups.empty?, 'Geometry mismatch left model entities')
+
 Sketchup.active_model = Object.new
 begin
   AIIDEA::SceneImporter.import_file(fixture)
@@ -164,4 +182,4 @@ begin
 rescue ArgumentError
 end
 
-puts 'AI IDEA model-protection smoke: 10/10'
+puts 'AI IDEA model-protection smoke: 11/11'
