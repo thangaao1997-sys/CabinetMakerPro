@@ -40,6 +40,7 @@ callbacks = UI.menu('Extensions').callbacks
 raise 'Import menu missing' unless callbacks.key?('AI IDEA - Import DRAFT scene (JSON)')
 raise 'Diagnostic menu missing' unless callbacks.key?('AI IDEA - Diagnostics (READ ONLY)')
 raise 'Model audit menu missing' unless callbacks.key?('AI IDEA - Audit selected DRAFT (READ ONLY)')
+raise 'Self-test menu missing' unless callbacks.key?('AI IDEA - Self-test in EMPTY model (ABORT)')
 callbacks['AI IDEA - Diagnostics (READ ONLY)'].call
 raise 'Diagnostic message missing' unless UI.messages.any? { |msg| msg.include?('No model changes performed') }
-puts 'AI IDEA menu smoke mock: 4/4'
+puts 'AI IDEA menu smoke mock: 5/5'
