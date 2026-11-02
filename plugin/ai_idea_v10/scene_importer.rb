@@ -60,6 +60,44 @@ module AIIDEA
       true
     end
 
+    # Internal geometry builder. Caller must hold a SketchUp operation.
+    # It enforces the same new/empty/unlocked-model gate used for imports.
+    def draw_draft(scene, model)
+      ensure_safe_target!(model)
+      root=model.active_entities.add_group
+      root.name="AI IDEA DRAFT - #{scene['request_id']}"
+      root.set_attribute('AI_IDEA','manufacturing_approved',false)
+      root.set_attribute('AI_IDEA','scene_schema','ai-idea.scene.v1')
+      root.set_attribute('AI_IDEA','expected_parts_count',scene['objects'].length)
+      # Persist original placement to detect subsequent movement/rotation.
+      root.set_attribute('AI_IDEA','expected_root_transform',root.transformation.to_a)
+      root.set_attribute('AI_IDEA','expected_root_name',root.name)
+      scene['objects'].each do |obj|
+        pos=%w[x y z].map{|k|obj['origin_mm'][k].mm}
+        size=%w[x y z].map{|k|obj['size_mm'][k].mm}
+        group=root.entities.add_group
+        group.name=obj['id']
+        group.set_attribute('AI_IDEA','role',obj['role'])
+        group.set_attribute('AI_IDEA','material',obj['material'])
+        group.set_attribute('AI_IDEA','expected_size_mm',%w[x y z].map{|axis|obj['size_mm'][axis]})
+        group.set_attribute('AI_IDEA','expected_origin_mm',%w[x y z].map{|axis|obj['origin_mm'][axis]})
+        group.set_attribute('AI_IDEA','expected_part_id',obj['id'])
+        face=group.entities.add_face([[0,0,0],[size[0],0,0],[size[0],size[1],0],[0,size[1],0]])
+        raise 'Face creation failed' unless face
+        face.reverse! if face.normal.z<0
+        face.pushpull(size[2])
+        actual_geometry = AIIDEA::GeometryFingerprint.signature(group.entities)
+        expected_geometry = AIIDEA::GeometryFingerprint.expected_box_signature(
+          obj['size_mm']['x'], obj['size_mm']['y'], obj['size_mm']['z'])
+        raise 'Panel geometry does not match requested rectangular prism' unless actual_geometry == expected_geometry
+        group.transform!(Geom::Transformation.translation(pos))
+        group.set_attribute('AI_IDEA','expected_part_transform',group.transformation.to_a)
+        group.set_attribute('AI_IDEA','geometry_sha256',actual_geometry)
+      end
+
+      root
+    end
+
     def import_file(path)
       raise ArgumentError, 'Only a regular JSON file is accepted' unless File.file?(path) && !File.symlink?(path) && File.extname(path).downcase == '.json'
       raise ArgumentError, 'File too large' if File.size(path)>128_000
@@ -68,36 +106,7 @@ module AIIDEA
       ensure_safe_target!(model)
       model.start_operation('AI IDEA DRAFT Import',true)
       begin
-        root=model.active_entities.add_group
-        root.name="AI IDEA DRAFT - #{scene['request_id']}"
-        root.set_attribute('AI_IDEA','manufacturing_approved',false)
-        root.set_attribute('AI_IDEA','scene_schema','ai-idea.scene.v1')
-        root.set_attribute('AI_IDEA','expected_parts_count',scene['objects'].length)
-        # Persist original placement to detect subsequent movement/rotation.
-        root.set_attribute('AI_IDEA','expected_root_transform',root.transformation.to_a)
-        root.set_attribute('AI_IDEA','expected_root_name',root.name)
-        scene['objects'].each do |obj|
-          pos=%w[x y z].map{|k|obj['origin_mm'][k].mm}
-          size=%w[x y z].map{|k|obj['size_mm'][k].mm}
-          group=root.entities.add_group
-          group.name=obj['id']
-          group.set_attribute('AI_IDEA','role',obj['role'])
-          group.set_attribute('AI_IDEA','material',obj['material'])
-          group.set_attribute('AI_IDEA','expected_size_mm',%w[x y z].map{|axis|obj['size_mm'][axis]})
-          group.set_attribute('AI_IDEA','expected_origin_mm',%w[x y z].map{|axis|obj['origin_mm'][axis]})
-          group.set_attribute('AI_IDEA','expected_part_id',obj['id'])
-          face=group.entities.add_face([[0,0,0],[size[0],0,0],[size[0],size[1],0],[0,size[1],0]])
-          raise 'Face creation failed' unless face
-          face.reverse! if face.normal.z<0
-          face.pushpull(size[2])
-          actual_geometry = AIIDEA::GeometryFingerprint.signature(group.entities)
-          expected_geometry = AIIDEA::GeometryFingerprint.expected_box_signature(
-            obj['size_mm']['x'], obj['size_mm']['y'], obj['size_mm']['z'])
-          raise 'Panel geometry does not match requested rectangular prism' unless actual_geometry == expected_geometry
-          group.transform!(Geom::Transformation.translation(pos))
-          group.set_attribute('AI_IDEA','expected_part_transform',group.transformation.to_a)
-          group.set_attribute('AI_IDEA','geometry_sha256',actual_geometry)
-        end
+        root=draw_draft(scene,model)
         model.commit_operation
         root
       rescue StandardError
