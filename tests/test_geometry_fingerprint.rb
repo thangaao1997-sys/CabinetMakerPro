@@ -122,4 +122,30 @@ expect('9 reject nonfinite coordinates') do
     true
   end
 end
-puts 'AI IDEA geometry fingerprint mock: 9/9'
+expect('10 generated cube matches independent dimensions') do
+  AIIDEA::GeometryFingerprint.expected_box_signature(10,20,30) == sig
+end
+
+expect('11 geometry change must fail independent box baseline') do
+  AIIDEA::GeometryFingerprint.signature(SigEntities.new(extra_edge)) !=
+    AIIDEA::GeometryFingerprint.expected_box_signature(10,20,30)
+end
+
+expect('12 different dimensions change expected digest') do
+  AIIDEA::GeometryFingerprint.expected_box_signature(10,20,31) != sig
+end
+
+expect('13 reject nonfinite or zero cuboid dimensions') do
+  begin
+    AIIDEA::GeometryFingerprint.expected_box_signature(10,0,30)
+    false
+  rescue ArgumentError
+    begin
+      AIIDEA::GeometryFingerprint.expected_box_signature(10,Float::INFINITY,30)
+      false
+    rescue ArgumentError
+      true
+    end
+  end
+end
+puts 'AI IDEA geometry fingerprint mock: 13/13'
