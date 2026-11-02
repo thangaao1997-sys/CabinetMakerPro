@@ -24,9 +24,14 @@ class SafeMockGroup
   def initialize(fail: false)
     @entities = SafeMockEntities.new(fail: fail)
     @attributes = {}
+    @matrix = [1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0]
   end
   def set_attribute(scope, key, value); @attributes[[scope,key]] = value; end
-  def transform!(position); raise 'invalid position' unless position.length == 3; end
+  def transformation; Struct.new(:to_a).new(@matrix); end
+  def transform!(position)
+    raise 'invalid position' unless position.length == 3
+    @matrix[12, 3] = position
+  end
 end
 class SafeMockEntities
   attr_reader :groups
@@ -104,6 +109,12 @@ assert(root.attributes[['AI_IDEA','scene_schema']] == 'ai-idea.scene.v1', 'Missi
 assert(root.attributes[['AI_IDEA','expected_parts_count']] == scene['objects'].size, 'Missing panel count metadata')
 expected = scene['objects'].first['size_mm'].values_at('x','y','z')
 assert(root.entities.groups.first.attributes[['AI_IDEA','expected_size_mm']] == expected, 'Panel dimensions not recorded')
+assert(root.attributes[['AI_IDEA','expected_root_name']] == root.name, 'Root name baseline missing')
+assert(root.attributes[['AI_IDEA','expected_root_transform']].length == 16, 'Root matrix baseline missing')
+assert(root.entities.groups.first.attributes[['AI_IDEA','expected_part_id']] == scene['objects'].first['id'], 'Panel ID baseline missing')
+assert(root.entities.groups.first.attributes[['AI_IDEA','expected_origin_mm']] ==
+  scene['objects'].first['origin_mm'].values_at('x','y','z'), 'Panel origin baseline missing')
+assert(root.entities.groups.first.attributes[['AI_IDEA','expected_part_transform']].length == 16, 'Panel transform baseline missing')
 
 populated = SafeMockModel.new
 populated.entities.add_group
@@ -139,4 +150,4 @@ begin
 rescue ArgumentError
 end
 
-puts 'AI IDEA model-protection smoke: 8/8'
+puts 'AI IDEA model-protection smoke: 9/9'
