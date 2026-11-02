@@ -22,6 +22,43 @@ module AIIDEA
       result
     end
 
+    def digest_components(face_data, edge_data)
+      digest_data = {
+        'schema' => 'ai-idea.panel-geometry.v1',
+        'quantization_mm' => QUANT_MM,
+        'faces' => face_data,
+        'edges' => edge_data
+      }
+      Digest::SHA256.hexdigest(JSON.generate(digest_data))
+    end
+
+    # Derive the fingerprint of a true six-faced, twelve-edged rectangular
+    # prism from the JSON dimensions alone, independently of SketchUp output.
+    def expected_box_signature(x_mm, y_mm, z_mm)
+      dims = [x_mm, y_mm, z_mm]
+      unless dims.all? { |n| n.is_a?(Numeric) && n.finite? && n > 0 }
+        raise ArgumentError, 'Invalid expected panel dimensions'
+      end
+      x,y,z = dims.map { |n| (n / QUANT_MM).round }
+      raise ArgumentError, 'Panel too thin for geometry quantization' if [x,y,z].any?(&:zero?)
+      p = [
+        [0,0,0], [x,0,0], [x,y,0], [0,y,0],
+        [0,0,z], [x,0,z], [x,y,z], [0,y,z]
+      ]
+      rings = [
+        [0,1,2,3], [4,5,6,7], [0,1,5,4],
+        [1,2,6,5], [2,3,7,6], [3,0,4,7]
+      ]
+      segments = [
+        [0,1], [1,2], [2,3], [3,0],
+        [4,5], [5,6], [6,7], [7,4],
+        [0,4], [1,5], [2,6], [3,7]
+      ]
+      faces = rings.map { |ring| [ring.map { |i| p[i] }.sort] }.sort
+      edges = segments.map { |segment| segment.map { |i| p[i] }.sort }.sort
+      digest_components(faces, edges)
+    end
+
     def signature(entities)
       raise ArgumentError, 'Cannot inspect geometry' unless entities.respond_to?(:to_a)
       items = entities.to_a
@@ -47,13 +84,7 @@ module AIIDEA
         [point_key(edge.start.position), point_key(edge.end.position)].sort
       end.sort
 
-      digest_data = {
-        'schema' => 'ai-idea.panel-geometry.v1',
-        'quantization_mm' => QUANT_MM,
-        'faces' => face_data,
-        'edges' => edge_data,
-      }
-      Digest::SHA256.hexdigest(JSON.generate(digest_data))
+      digest_components(face_data, edge_data)
     rescue NoMethodError, TypeError, FloatDomainError => e
       raise ArgumentError, "Cannot inspect panel geometry: #{e.class}" 
     end
