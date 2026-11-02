@@ -32,6 +32,12 @@ jobs:
           ruby -c sketchup/ai_idea_scene_importer.rb
       - name: Check Ruby scene parsing
         run: ruby tests/test_scene_parser.rb
+      - name: Test read-only workshop inventory (Ruby mocks)
+        run: |
+          ruby -c workshop_plugin/ai_idea_workshop.rb
+          ruby -c workshop_plugin/ai_idea_workshop/main.rb
+          ruby -c workshop_plugin/ai_idea_workshop/inventory.rb
+          ruby tests/test_workshop_inventory.rb
       - name: Simulated SketchUp import
         run: ruby tests/test_importer_mock.rb
       - name: Test read-only diagnostic module
