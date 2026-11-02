@@ -1,6 +1,6 @@
 """Build a reproducible SketchUp RBZ from the repository source.
 
-Usage: python -m tools.build_rbz --output dist/AI_IDEA_V18_ALPHA.rbz
+Usage: python -m tools.build_rbz --output dist/AI_IDEA_V19_ALPHA.rbz
 No external dependencies, no network or SketchUp access.
 """
 import argparse
@@ -16,6 +16,7 @@ FILES = (
     "plugin/ai_idea_v10/scene_importer.rb",
     "plugin/ai_idea_v10/diagnostics.rb",
     "plugin/ai_idea_v10/model_audit.rb",
+    "plugin/ai_idea_v10/geometry_fingerprint.rb",
 )
 
 def build(output, root=ROOT):
