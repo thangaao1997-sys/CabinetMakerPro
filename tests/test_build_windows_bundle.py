@@ -20,13 +20,14 @@ class WindowsStarterTests(unittest.TestCase):
         report = build_bundle(output, self.rbz)
         self.assertTrue(report["read_only"])
         with zipfile.ZipFile(output) as bundle:
-            self.assertIn("AI_IDEA_V1_ALPHA.rbz", bundle.namelist())
+            self.assertIn("AI_IDEA_V18_ALPHA.rbz", bundle.namelist())
             self.assertIn("AI_IDEA_CHECK.cmd", bundle.namelist())
             self.assertIn("tools/windows_preflight.py", bundle.namelist())
             self.assertIn("core/command_center.py", bundle.namelist())
             self.assertIn("V15_DIAGNOSTICS.md", bundle.namelist())
+            self.assertIn("README_WINDOWS.md", bundle.namelist())
             self.assertIn("V16_V17_MODEL_SAFETY.md", bundle.namelist())
-            self.assertEqual(bundle.read("AI_IDEA_V1_ALPHA.rbz"), self.rbz.read_bytes())
+            self.assertEqual(bundle.read("AI_IDEA_V18_ALPHA.rbz"), self.rbz.read_bytes())
             self.assertIsNone(bundle.testzip())
 
     def test_reproducible(self):
