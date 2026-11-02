@@ -80,7 +80,7 @@ run=-> { AIIDEA::ModelAudit.audit(FakeModel.new([root])) }
 check('1 baseline pass') { run.call['status']=='passed' }
 check('2 no changes or approval') do
   result=run.call
-  !result['model_changed'] && !result['manufacturing_approved'] && result['schema_version']=='ai-idea.model-audit.v3'
+  !result['model_changed'] && !result['manufacturing_approved'] && result['schema_version']=='ai-idea.model-audit.v4'
 end
 
 part_a.box.width=11.0
@@ -168,4 +168,82 @@ check('18 non-group geometry rejected') do
     parts.pop
   end
 end
-puts 'AI IDEA model audit mock: 18/18'
+require 'tmpdir'
+
+check('19 detailed baseline dimensions') do
+  result = run.call
+  panel = result['panels'].first
+  result['axes'] == %w[X Y Z] && result['coordinate_space'] == 'draft_parent_local' &&
+    panel['expected_size_mm'] == [10,20,30] && panel['actual_size_mm'] == [10,20,30] &&
+    panel['origin_delta_mm'] == [0,0,0] && panel['status'] == 'passed'
+end
+
+baseline_attributes = Marshal.dump([root.attributes, part_a.attributes, part_b.attributes])
+part_a.matrix[14] = 84.342 / 25.4
+part_a.box.min.z = 84.342
+check('20 moved panel has signed Z delta and fails') do
+  result = run.call
+  panel = result['panels'].first
+  result['status'] == 'failed' && panel['status'] == 'failed' &&
+    (panel['origin_delta_mm'][2] - 84.342).abs < 0.000001 &&
+    panel['errors'].any? { |e| e.include?('transformation changed') } &&
+    result['panels'].last['status'] == 'passed'
+end
+
+Dir.mktmpdir do |dir|
+  model = FakeModel.new([root])
+  failed_path = File.join(dir, 'failed.json')
+  check('21 export failed audit without changing model') do
+    report = AIIDEA::ModelAudit.export_to(failed_path, model)
+    JSON.parse(File.read(failed_path)) == report && report['status'] == 'failed' &&
+      Marshal.dump([root.attributes, part_a.attributes, part_b.attributes]) == baseline_attributes &&
+      part_a.box.min.z == 84.342
+  end
+  check('22 existing report cannot be overwritten') do
+    original = File.binread(failed_path)
+    begin
+      AIIDEA::ModelAudit.export_to(failed_path, model)
+      false
+    rescue Errno::EEXIST
+      File.binread(failed_path) == original
+    end
+  end
+  check('23 invalid extension creates no file') do
+    file = File.join(dir, 'report.txt')
+    begin
+      AIIDEA::ModelAudit.export_to(file, model)
+      false
+    rescue ArgumentError
+      !File.exist?(file)
+    end
+  end
+  part_a.matrix[14] = 0.0
+  part_a.box.min.z = 0.0
+  check('24 undo restoration produces passed report') do
+    report = AIIDEA::ModelAudit.export_to(File.join(dir, 'restored.JSON'), model)
+    report['status'] == 'passed' && report['panels'].all? { |p| p['status'] == 'passed' }
+  end
+  check('25 invalid selection creates no report') do
+    file = File.join(dir, 'invalid.json')
+    begin
+      AIIDEA::ModelAudit.export_to(file, FakeModel.new([]))
+      false
+    rescue ArgumentError
+      !File.exist?(file)
+    end
+  end
+end
+
+part_a.attributes['AI_IDEA']['expected_size_mm'] = [Float::NAN,20,30]
+check('26 malformed dimensions remain exportable failed evidence') do
+  result = run.call
+  result['status'] == 'failed' && result['panels'].first['status'] == 'failed' &&
+    result['panels'].first['actual_size_mm'].nil? && JSON.generate(result).is_a?(String)
+end
+part_a.attributes['AI_IDEA']['expected_size_mm'] = [10,20,30]
+check('27 report cannot mutate stored baseline arrays') do
+  result = run.call
+  result['panels'].first['expected_size_mm'][0] = 999
+  part_a.attributes['AI_IDEA']['expected_size_mm'] == [10,20,30] && run.call['status'] == 'passed'
+end
+puts 'AI IDEA model audit mock: 27/27'

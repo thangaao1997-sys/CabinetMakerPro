@@ -86,6 +86,15 @@ class WindowsPreflightTests(unittest.TestCase):
         old = inspect_host(os_name="Windows", python_version=(3, 10))
         self.assertFalse(old["python_compatible"])
 
+    def test_inaccessible_host_paths_are_not_ready(self):
+        from unittest.mock import patch
+        with patch.object(Path, 'is_dir', side_effect=PermissionError('restricted')), \
+             patch.object(Path, 'is_file', side_effect=PermissionError('restricted')):
+            host = inspect_host(os_name='Windows', appdata='restricted', program_files='restricted')
+        self.assertFalse(host['sketchup_exe_detected'])
+        self.assertFalse(host['sketchup_plugin_directory_detected'])
+        self.assertFalse(host['actual_sketchup_execution_tested'])
+
 
 if __name__ == "__main__":
     unittest.main()

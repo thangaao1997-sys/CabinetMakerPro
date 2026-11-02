@@ -42,5 +42,8 @@ raise 'Diagnostic menu missing' unless callbacks.key?('AI IDEA - Diagnostics (RE
 raise 'Model audit menu missing' unless callbacks.key?('AI IDEA - Audit selected DRAFT (READ ONLY)')
 raise 'Self-test menu missing' unless callbacks.key?('AI IDEA - Self-test in EMPTY model (ABORT)')
 callbacks['AI IDEA - Diagnostics (READ ONLY)'].call
+raise 'Audit report menu missing' unless callbacks.key?('AI IDEA - Export DRAFT audit report (JSON)')
+callbacks['AI IDEA - Export DRAFT audit report (JSON)'].call
+raise 'Cancel export should not display a success message' if UI.messages.any? { |msg| msg.include?('audit report saved') }
 raise 'Diagnostic message missing' unless UI.messages.any? { |msg| msg.include?('No model changes performed') }
-puts 'AI IDEA menu smoke mock: 5/5'
+puts 'AI IDEA menu smoke mock: 7/7'

@@ -45,12 +45,12 @@ jobs:
       - name: Test disposable SketchUp self-test using Ruby mocks
         run: ruby tests/test_self_test_mock.rb
       - name: Build reproducible SketchUp extension
-        run: python -m tools.build_rbz --output dist/AI_IDEA_V192_ALPHA.rbz
+        run: python -m tools.build_rbz --output dist/AI_IDEA_V193_ALPHA.rbz
       - name: Upload RBZ artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AI_IDEA_V192_ALPHA_RBZ
-          path: dist/AI_IDEA_V192_ALPHA.rbz
+          name: AI_IDEA_V193_ALPHA_RBZ
+          path: dist/AI_IDEA_V193_ALPHA.rbz
           if-no-files-found: error
 
   windows-readiness:
@@ -65,20 +65,20 @@ jobs:
       - name: Run unit tests on Windows
         run: python -m unittest discover -s tests -v
       - name: Build RBZ from exact source
-        run: python -m tools.build_rbz --output dist/AI_IDEA_V192_ALPHA.rbz
+        run: python -m tools.build_rbz --output dist/AI_IDEA_V193_ALPHA.rbz
       - name: Inspect RBZ and source parity (no SketchUp required)
-        run: python -m tools.windows_preflight --rbz dist/AI_IDEA_V192_ALPHA.rbz --source-root .
+        run: python -m tools.windows_preflight --rbz dist/AI_IDEA_V193_ALPHA.rbz --source-root .
       - name: Build Windows starter bundle
-        run: python -m tools.build_windows_bundle --rbz dist/AI_IDEA_V192_ALPHA.rbz --output dist/AI_IDEA_V192_WINDOWS_STARTER.zip
+        run: python -m tools.build_windows_bundle --rbz dist/AI_IDEA_V193_ALPHA.rbz --output dist/AI_IDEA_V193_WINDOWS_STARTER.zip
       - name: Test Windows starter command
         shell: pwsh
         run: |
-          Expand-Archive -Path dist/AI_IDEA_V192_WINDOWS_STARTER.zip -DestinationPath dist/starter_smoke
+          Expand-Archive -Path dist/AI_IDEA_V193_WINDOWS_STARTER.zip -DestinationPath dist/starter_smoke
           & cmd.exe /c "dist\\starter_smoke\\AI_IDEA_CHECK.cmd"
           if ($LASTEXITCODE -ne 0) { throw "Windows preflight wrapper failed: $LASTEXITCODE" }
       - name: Upload Windows starter
         uses: actions/upload-artifact@v4
         with:
-          name: AI_IDEA_V192_WINDOWS_STARTER
-          path: dist/AI_IDEA_V192_WINDOWS_STARTER.zip
+          name: AI_IDEA_V193_WINDOWS_STARTER
+          path: dist/AI_IDEA_V193_WINDOWS_STARTER.zip
           if-no-files-found: error

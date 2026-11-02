@@ -29,6 +29,16 @@ class PreflightError(ValueError):
     pass
 
 
+def _accessible_candidate(candidate, *, directory=False):
+    if candidate is None:
+        return False
+    try:
+        return candidate.is_dir() if directory else candidate.is_file()
+    except OSError:
+        # Restricted or unavailable paths are not evidence of readiness.
+        return False
+
+
 def inspect_rbz(archive_path, source_root=None):
     """Verify extension layout, CRC, sizes and optionally exact source parity."""
     archive_path = Path(archive_path)
@@ -87,8 +97,8 @@ def inspect_host(*, os_name=None, appdata=None, program_files=None, python_versi
         "os": os_name,
         "windows": windows,
         "python_compatible": tuple(python_version) >= (3, 11),
-        "sketchup_exe_detected": bool(executable and executable.is_file()),
-        "sketchup_plugin_directory_detected": bool(plugin_dir and plugin_dir.is_dir()),
+        "sketchup_exe_detected": _accessible_candidate(executable),
+        "sketchup_plugin_directory_detected": _accessible_candidate(plugin_dir, directory=True),
         "sketchup_exe_candidate": str(executable) if executable else None,
         "plugins_dir_candidate": str(plugin_dir) if plugin_dir else None,
         "actual_sketchup_execution_tested": False,
