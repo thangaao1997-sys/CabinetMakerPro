@@ -44,7 +44,12 @@ module AIIDEA
       raise ArgumentError, 'No active SketchUp model' unless model && model.respond_to?(:selection)
       selected = model.selection.to_a
       raise ArgumentError, 'Select exactly ONE AI IDEA DRAFT parent group' unless selected.size == 1
-      root = selected.first
+      audit_root(selected.first)
+    end
+
+    # Audit an explicit parent group without changing the current selection.
+    # Used by the disposable in-SketchUp self-test.
+    def audit_root(root)
       raise ArgumentError, 'Selected item is not a SketchUp group' unless root.is_a?(Sketchup::Group)
 
       marker = root.get_attribute('AI_IDEA', 'scene_schema', nil)
