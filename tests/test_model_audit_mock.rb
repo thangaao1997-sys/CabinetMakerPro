@@ -1,4 +1,5 @@
 require_relative '../plugin/ai_idea_v10/model_audit'
+require_relative 'support/mock_panel_geometry'
 
 IDENTITY = [1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0].freeze
 
@@ -17,8 +18,12 @@ class FakeBox
   end
 end
 class FakeEntities
-  def initialize(items=[]); @items=items; end
-  def to_a; @items; end
+  attr_reader :geometry
+  def initialize(items=[], geometry=[])
+    @items=items
+    @geometry=geometry
+  end
+  def to_a; @items+@geometry; end
 end
 class FakeSelection
   def initialize(items); @items=items; end
@@ -34,7 +39,7 @@ module Sketchup
     attr_accessor :name, :entities, :box, :attributes, :matrix
     def initialize(name='', children=[], expected=nil, mark=false)
       @name=name
-      @entities=FakeEntities.new(children)
+      @entities=FakeEntities.new(children,expected ? MockPanelGeometry.box(*expected) : [])
       @attributes={'AI_IDEA'=>{}}
       @matrix=IDENTITY.dup
       if mark
@@ -48,6 +53,7 @@ module Sketchup
         @attributes['AI_IDEA']['expected_part_transform']=IDENTITY.dup
         @attributes['AI_IDEA']['expected_size_mm']=expected if expected
         @attributes['AI_IDEA']['expected_origin_mm']=[0.0,0.0,0.0]
+        @attributes['AI_IDEA']['geometry_sha256']=AIIDEA::GeometryFingerprint.signature(@entities) if expected
       end
       @box=FakeBox.new(10.0,20.0,30.0)
     end
@@ -74,7 +80,7 @@ run=-> { AIIDEA::ModelAudit.audit(FakeModel.new([root])) }
 check('1 baseline pass') { run.call['status']=='passed' }
 check('2 no changes or approval') do
   result=run.call
-  !result['model_changed'] && !result['manufacturing_approved'] && result['schema_version']=='ai-idea.model-audit.v2'
+  !result['model_changed'] && !result['manufacturing_approved'] && result['schema_version']=='ai-idea.model-audit.v3'
 end
 
 part_a.box.width=11.0
@@ -117,7 +123,23 @@ root.attributes['AI_IDEA']['expected_root_transform']=[1,2]
 check('12 malformed transform metadata') { run.call['errors'].any? { |e| e.include?('missing valid transformation baseline') } }
 root.attributes['AI_IDEA']['expected_root_transform']=IDENTITY.dup
 
-check('13 empty selection rejected') do
+baseline_digest=part_a.attributes['AI_IDEA']['geometry_sha256']
+part_a.entities.geometry << MockPanelGeometry::Edge.new([1,1,30],[2,1,30])
+check('13 interior edge changed but bounding box unchanged') {
+  run.call['errors'].any? { |e| e.include?('SIDE-L: internal geometry changed') }
+}
+part_a.entities.geometry.pop
+check('14 geometry restoration validates') {
+  run.call['status']=='passed' && part_a.attributes['AI_IDEA']['geometry_sha256']==baseline_digest
+}
+
+part_b.attributes['AI_IDEA'].delete('geometry_sha256')
+check('15 old draft missing digest fails closed') {
+  run.call['errors'].any? { |e| e.include?('reimport using V1.9') }
+}
+part_b.attributes['AI_IDEA']['geometry_sha256']=AIIDEA::GeometryFingerprint.signature(part_b.entities)
+
+check('16 empty selection rejected') do
   begin
     AIIDEA::ModelAudit.audit(FakeModel.new([]))
     false
@@ -126,7 +148,7 @@ check('13 empty selection rejected') do
   end
 end
 
-check('14 unmarked root rejected') do
+check('17 unmarked root rejected') do
   begin
     AIIDEA::ModelAudit.audit(FakeModel.new([Sketchup::Group.new('OTHER')]))
     false
@@ -135,7 +157,7 @@ check('14 unmarked root rejected') do
   end
 end
 
-check('15 non-group geometry rejected') do
+check('18 non-group geometry rejected') do
   parts << Object.new
   begin
     run.call
@@ -146,4 +168,4 @@ check('15 non-group geometry rejected') do
     parts.pop
   end
 end
-puts 'AI IDEA model audit mock: 15/15'
+puts 'AI IDEA model audit mock: 18/18'
