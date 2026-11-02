@@ -1,6 +1,7 @@
 # encoding: UTF-8
 # AI IDEA V1.8 read-only integrity audit of a selected DRAFT SketchUp group.
 # Detects edits to size, placement, identity and parent/part transformation.
+require_relative 'geometry_fingerprint'
 module AIIDEA
   module ModelAudit
     module_function
@@ -82,6 +83,18 @@ module AIIDEA
 
         inspect_transform(part, part.get_attribute('AI_IDEA', 'expected_part_transform', nil), name, errors)
 
+        expected_digest = part.get_attribute('AI_IDEA', 'geometry_sha256', nil)
+        unless expected_digest.is_a?(String) && expected_digest.match?(/\\A[0-9a-f]{64}\\z/)
+          errors << "#{name}: missing valid geometric fingerprint (reimport using V1.9)"
+        else
+          begin
+            actual_digest = AIIDEA::GeometryFingerprint.signature(part.entities)
+            errors << "#{name}: internal geometry changed" unless actual_digest == expected_digest
+          rescue ArgumentError => e
+            errors << "#{name}: cannot verify internal geometry (#{e.message})"
+          end
+        end
+
         size = part.get_attribute('AI_IDEA', 'expected_size_mm', nil)
         origin = part.get_attribute('AI_IDEA', 'expected_origin_mm', nil)
         unless finite_numbers?(size, 3, positive: true)
@@ -118,13 +131,13 @@ module AIIDEA
       end
 
       {
-        'schema_version' => 'ai-idea.model-audit.v2',
+        'schema_version' => 'ai-idea.model-audit.v3',
         'mode' => 'read_only',
         'status' => errors.empty? ? 'passed' : 'failed',
         'expected_panels' => expected_count,
         'inspected_panels' => entities.length,
         'tolerance_mm' => TOLERANCE_MM,
-        'checks' => ['part_count', 'part_ids', 'part_sizes', 'part_origins', 'parent_transform', 'part_transforms'],
+        'checks' => ['part_count', 'part_ids', 'part_sizes', 'part_origins', 'parent_transform', 'part_transforms', 'face_loops', 'edges'],
         'errors' => errors,
         'model_changed' => false,
         'manufacturing_approved' => false
