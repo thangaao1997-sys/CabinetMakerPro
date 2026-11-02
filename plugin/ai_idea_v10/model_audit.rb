@@ -84,7 +84,7 @@ module AIIDEA
         inspect_transform(part, part.get_attribute('AI_IDEA', 'expected_part_transform', nil), name, errors)
 
         expected_digest = part.get_attribute('AI_IDEA', 'geometry_sha256', nil)
-        unless expected_digest.is_a?(String) && expected_digest.match?(/\\A[0-9a-f]{64}\\z/)
+        unless expected_digest.is_a?(String) && expected_digest.match?(/\A[0-9a-f]{64}\z/)
           errors << "#{name}: missing valid geometric fingerprint (reimport using V1.9)"
         else
           begin
