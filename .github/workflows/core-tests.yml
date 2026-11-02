@@ -39,12 +39,12 @@ jobs:
       - name: Test SketchUp selected-draft dimensions (Ruby mock)
         run: ruby tests/test_model_audit_mock.rb
       - name: Build reproducible SketchUp extension
-        run: python -m tools.build_rbz --output dist/AI_IDEA_V1_ALPHA.rbz
+        run: python -m tools.build_rbz --output dist/AI_IDEA_V18_ALPHA.rbz
       - name: Upload RBZ artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AI_IDEA_V1_ALPHA_RBZ
-          path: dist/AI_IDEA_V1_ALPHA.rbz
+          name: AI_IDEA_V18_ALPHA_RBZ
+          path: dist/AI_IDEA_V18_ALPHA.rbz
           if-no-files-found: error
 
   windows-readiness:
@@ -59,20 +59,20 @@ jobs:
       - name: Run unit tests on Windows
         run: python -m unittest discover -s tests -v
       - name: Build RBZ from exact source
-        run: python -m tools.build_rbz --output dist/AI_IDEA_V1_ALPHA.rbz
+        run: python -m tools.build_rbz --output dist/AI_IDEA_V18_ALPHA.rbz
       - name: Inspect RBZ and source parity (no SketchUp required)
-        run: python -m tools.windows_preflight --rbz dist/AI_IDEA_V1_ALPHA.rbz --source-root .
+        run: python -m tools.windows_preflight --rbz dist/AI_IDEA_V18_ALPHA.rbz --source-root .
       - name: Build Windows starter bundle
-        run: python -m tools.build_windows_bundle --rbz dist/AI_IDEA_V1_ALPHA.rbz --output dist/AI_IDEA_WINDOWS_STARTER.zip
+        run: python -m tools.build_windows_bundle --rbz dist/AI_IDEA_V18_ALPHA.rbz --output dist/AI_IDEA_V18_WINDOWS_STARTER.zip
       - name: Test Windows starter command
         shell: pwsh
         run: |
-          Expand-Archive -Path dist/AI_IDEA_WINDOWS_STARTER.zip -DestinationPath dist/starter_smoke
+          Expand-Archive -Path dist/AI_IDEA_V18_WINDOWS_STARTER.zip -DestinationPath dist/starter_smoke
           & cmd.exe /c "dist\\starter_smoke\\AI_IDEA_CHECK.cmd"
           if ($LASTEXITCODE -ne 0) { throw "Windows preflight wrapper failed: $LASTEXITCODE" }
       - name: Upload Windows starter
         uses: actions/upload-artifact@v4
         with:
-          name: AI_IDEA_V17_WINDOWS_STARTER
-          path: dist/AI_IDEA_WINDOWS_STARTER.zip
+          name: AI_IDEA_V18_WINDOWS_STARTER
+          path: dist/AI_IDEA_V18_WINDOWS_STARTER.zip
           if-no-files-found: error
