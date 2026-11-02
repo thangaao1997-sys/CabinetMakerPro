@@ -42,7 +42,10 @@ module AIIDEA
         raise "Draft integrity test failed: #{report['errors'].first(3).join('; ')}" unless report['status'] == 'passed'
       ensure
         # A successful self-test must never commit the temporary geometry.
-        model.abort_operation if opened
+        if opened
+          aborted = model.abort_operation
+          raise 'SketchUp did not confirm the rollback; inspect the TEST model' unless aborted == true
+        end
       end
 
       # Explicit post-condition; fail closed if the host did not undo.
