@@ -20,7 +20,7 @@ class WindowsPreflightTests(unittest.TestCase):
     def test_packaged_rbz_and_source_parity(self):
         result = inspect_rbz(self.rbz, ROOT)
         self.assertTrue(result["valid"])
-        self.assertEqual(len(result["files"]), 5)
+        self.assertEqual(len(result["files"]), 6)
         self.assertTrue(result["source_parity_checked"])
 
     def test_host_without_sketchup(self):
@@ -70,7 +70,7 @@ class WindowsPreflightTests(unittest.TestCase):
         fake_root = self.root / "different"
         (fake_root / "plugin" / "ai_idea_v10").mkdir(parents=True)
         for path in ("ai_idea_v10.rb", "ai_idea_v10/main.rb",
-                     "ai_idea_v10/scene_importer.rb", "ai_idea_v10/diagnostics.rb", "ai_idea_v10/model_audit.rb"):
+                     "ai_idea_v10/scene_importer.rb", "ai_idea_v10/diagnostics.rb", "ai_idea_v10/model_audit.rb", "ai_idea_v10/geometry_fingerprint.rb"):
             target = fake_root / "plugin" / path
             target.write_text("incorrect source", encoding="utf-8")
         with self.assertRaises(PreflightError):
