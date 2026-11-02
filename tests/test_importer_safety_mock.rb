@@ -1,5 +1,6 @@
 require 'json'
 require_relative '../plugin/ai_idea_v10/scene_importer'
+require_relative 'support/mock_panel_geometry'
 
 class Numeric
   def mm; self; end
@@ -11,11 +12,18 @@ module Geom
 end
 
 class SafeMockFace
-  def initialize(fail: false); @fail = fail; end
+  def initialize(fail: false, parent: nil, points: nil)
+    @fail=fail
+    @parent=parent
+    @points=points
+  end
   def normal; Struct.new(:z).new(1); end
   def pushpull(height)
     raise 'forced PushPull failure' if @fail
     raise 'invalid height' unless height > 0
+    width=@points[1][0]-@points[0][0]
+    depth=@points[2][1]-@points[1][1]
+    @parent.geometry=MockPanelGeometry.box(width,depth,height)
   end
 end
 class SafeMockGroup
@@ -35,9 +43,11 @@ class SafeMockGroup
 end
 class SafeMockEntities
   attr_reader :groups
+  attr_accessor :geometry
   def initialize(fail: false)
-    @groups = []
-    @fail = fail
+    @groups=[]
+    @geometry=[]
+    @fail=fail
   end
   def add_group
     group = SafeMockGroup.new(fail: @fail)
@@ -46,9 +56,9 @@ class SafeMockEntities
   end
   def add_face(points)
     raise 'invalid face' unless points.length == 4
-    SafeMockFace.new(fail: @fail)
+    SafeMockFace.new(fail: @fail, parent: self, points: points)
   end
-  def to_a; @groups.dup; end
+  def to_a; @groups.dup+@geometry; end
 end
 class SafeMockModel
   attr_accessor :path, :active_path, :locked
@@ -115,6 +125,10 @@ assert(root.entities.groups.first.attributes[['AI_IDEA','expected_part_id']] == 
 assert(root.entities.groups.first.attributes[['AI_IDEA','expected_origin_mm']] ==
   scene['objects'].first['origin_mm'].values_at('x','y','z'), 'Panel origin baseline missing')
 assert(root.entities.groups.first.attributes[['AI_IDEA','expected_part_transform']].length == 16, 'Panel transform baseline missing')
+fingerprint = root.entities.groups.first.attributes[['AI_IDEA','geometry_sha256']]
+assert(fingerprint.is_a?(String) && fingerprint.match?(/\A[0-9a-f]{64}\z/), 'Missing local geometry digest')
+assert(fingerprint == AIIDEA::GeometryFingerprint.signature(root.entities.groups.first.entities), 'Digest mismatch')
+
 
 populated = SafeMockModel.new
 populated.entities.add_group
@@ -150,4 +164,4 @@ begin
 rescue ArgumentError
 end
 
-puts 'AI IDEA model-protection smoke: 9/9'
+puts 'AI IDEA model-protection smoke: 10/10'
