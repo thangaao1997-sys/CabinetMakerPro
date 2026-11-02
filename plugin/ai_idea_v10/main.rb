@@ -3,6 +3,7 @@ require 'sketchup.rb'
 require_relative 'scene_importer'
 require_relative 'diagnostics'
 require_relative 'model_audit'
+require_relative 'self_test'
 module AIIDEA
   unless defined?(@menu_registered) && @menu_registered
     UI.menu('Extensions').add_item('AI IDEA - Import DRAFT scene (JSON)') do
@@ -27,6 +28,13 @@ module AIIDEA
         AIIDEA::ModelAudit.run_gui
       rescue StandardError => e
         UI.messagebox("AI IDEA model audit failed: #{e.class}: #{e.message}")
+      end
+    end
+    UI.menu('Extensions').add_item('AI IDEA - Self-test in EMPTY model (ABORT)') do
+      begin
+        AIIDEA::SelfTest.run_gui
+      rescue StandardError => e
+        UI.messagebox("AI IDEA self-test failed: #{e.class}: #{e.message}")
       end
     end
     @menu_registered=true
