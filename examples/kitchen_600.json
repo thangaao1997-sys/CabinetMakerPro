@@ -1,0 +1,16 @@
+{
+  "schema_version": "ai-idea.command.v1",
+  "request_id": "KITCHEN-DEMO-001",
+  "cabinet_type": "kitchen",
+  "dimensions_mm": {
+    "width": 600,
+    "depth": 560,
+    "height": 820
+  },
+  "materials_mm": {
+    "panel": 17,
+    "back": 7
+  },
+  "base_mm": 100,
+  "design_lock": false
+}

@@ -1,0 +1,84 @@
+name: AI IDEA validation
+on:
+  push:
+    branches: [main, "develop/**"]
+  pull_request:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+      - name: Check Python syntax
+        run: python -m compileall -q core tests
+      - name: Test Python pipeline
+        run: python -m unittest discover -s tests -v
+      - name: Check packaged Ruby syntax
+        run: |
+          ruby -c plugin/ai_idea_v10.rb
+          ruby -c plugin/ai_idea_v10/main.rb
+          ruby -c plugin/ai_idea_v10/scene_importer.rb
+          ruby -c plugin/ai_idea_v10/diagnostics.rb
+          ruby -c plugin/ai_idea_v10/model_audit.rb
+          ruby -c plugin/ai_idea_v10/geometry_fingerprint.rb
+          ruby -c plugin/ai_idea_v10/self_test.rb
+          ruby -c sketchup/ai_idea_scene_importer.rb
+      - name: Check Ruby scene parsing
+        run: ruby tests/test_scene_parser.rb
+      - name: Simulated SketchUp import
+        run: ruby tests/test_importer_mock.rb
+      - name: Test read-only diagnostic module
+        run: ruby tests/test_diagnostics_mock.rb
+      - name: Test SketchUp menu registration mock
+        run: ruby tests/test_menu_mock.rb
+      - name: Test SketchUp selected-draft dimensions (Ruby mock)
+        run: ruby tests/test_model_audit_mock.rb
+      - name: Test face-loop and edge fingerprint (Ruby mock)
+        run: ruby tests/test_geometry_fingerprint.rb
+      - name: Test disposable SketchUp self-test using Ruby mocks
+        run: ruby tests/test_self_test_mock.rb
+      - name: Build reproducible SketchUp extension
+        run: python -m tools.build_rbz --output dist/AI_IDEA_V192_ALPHA.rbz
+      - name: Upload RBZ artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AI_IDEA_V192_ALPHA_RBZ
+          path: dist/AI_IDEA_V192_ALPHA.rbz
+          if-no-files-found: error
+
+  windows-readiness:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run unit tests on Windows
+        run: python -m unittest discover -s tests -v
+      - name: Build RBZ from exact source
+        run: python -m tools.build_rbz --output dist/AI_IDEA_V192_ALPHA.rbz
+      - name: Inspect RBZ and source parity (no SketchUp required)
+        run: python -m tools.windows_preflight --rbz dist/AI_IDEA_V192_ALPHA.rbz --source-root .
+      - name: Build Windows starter bundle
+        run: python -m tools.build_windows_bundle --rbz dist/AI_IDEA_V192_ALPHA.rbz --output dist/AI_IDEA_V192_WINDOWS_STARTER.zip
+      - name: Test Windows starter command
+        shell: pwsh
+        run: |
+          Expand-Archive -Path dist/AI_IDEA_V192_WINDOWS_STARTER.zip -DestinationPath dist/starter_smoke
+          & cmd.exe /c "dist\\starter_smoke\\AI_IDEA_CHECK.cmd"
+          if ($LASTEXITCODE -ne 0) { throw "Windows preflight wrapper failed: $LASTEXITCODE" }
+      - name: Upload Windows starter
+        uses: actions/upload-artifact@v4
+        with:
+          name: AI_IDEA_V192_WINDOWS_STARTER
+          path: dist/AI_IDEA_V192_WINDOWS_STARTER.zip
+          if-no-files-found: error

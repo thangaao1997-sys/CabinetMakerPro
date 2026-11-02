@@ -1,0 +1,88 @@
+{
+  "schema_version": "ai-idea.scene.v1",
+  "units": "mm",
+  "request_id": "IDEA-DEMO-001",
+  "manufacturing_approved": false,
+  "envelope_mm": {
+    "width": 600,
+    "depth": 560,
+    "height": 820
+  },
+  "objects": [
+    {
+      "id": "SIDE-L",
+      "role": "left_side",
+      "material": "panel",
+      "origin_mm": {
+        "x": 0,
+        "y": 0,
+        "z": 100
+      },
+      "size_mm": {
+        "x": 17,
+        "y": 553,
+        "z": 720
+      }
+    },
+    {
+      "id": "SIDE-R",
+      "role": "right_side",
+      "material": "panel",
+      "origin_mm": {
+        "x": 583,
+        "y": 0,
+        "z": 100
+      },
+      "size_mm": {
+        "x": 17,
+        "y": 553,
+        "z": 720
+      }
+    },
+    {
+      "id": "TOP",
+      "role": "top",
+      "material": "panel",
+      "origin_mm": {
+        "x": 17,
+        "y": 0,
+        "z": 803
+      },
+      "size_mm": {
+        "x": 566,
+        "y": 553,
+        "z": 17
+      }
+    },
+    {
+      "id": "BOTTOM",
+      "role": "bottom",
+      "material": "panel",
+      "origin_mm": {
+        "x": 17,
+        "y": 0,
+        "z": 100
+      },
+      "size_mm": {
+        "x": 566,
+        "y": 553,
+        "z": 17
+      }
+    },
+    {
+      "id": "BACK",
+      "role": "overlay_back",
+      "material": "back",
+      "origin_mm": {
+        "x": 0,
+        "y": 553,
+        "z": 100
+      },
+      "size_mm": {
+        "x": 600,
+        "y": 7,
+        "z": 720
+      }
+    }
+  ]
+}
