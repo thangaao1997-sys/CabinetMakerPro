@@ -15,6 +15,7 @@ Khác với GitHub Actions, lệnh này **chỉ thật sự xác nhận môi tr�
 5. Khi đồng ý, nó dựng một tấm **60 × 40 × 17 mm** tại gốc tọa độ tương đối **(5, 10, 3) mm** trong một giao dịch thử, đối chiếu hình hộp lý thuyết và kiểm tra toàn vẹn Group.
 6. **Dù kiểm thử thành công hay thất bại, giao dịch thử đều bị hủy**, không có thao tác `commit_operation` trong Self-test.
 7. Sau khi hủy, Plugin kiểm tra mô hình không còn hình học được thêm; nếu không sạch, hiển thị lỗi để người dùng kiểm tra mẫu thử.
+   Nếu SketchUp trả về `abort_operation = false`, Self-test cũng báo lỗi ngay cả khi phần kiểm tra hình học trước đó đạt.
 8. Khi thành công, màn hình báo `AI IDEA SELF-TEST PASSED`. Chỉ có thể coi bài thử SketchUp thực tế là đạt **sau khi người dùng nhìn thấy kết quả này và xác nhận tình trạng mô hình**.
 
 ## Bảo vệ thiết kế
@@ -35,3 +36,13 @@ GitHub Actions kiểm tra Python và mô phỏng Ruby; đây **không tương đ
 - Tủ khác dùng chân/đế 50 mm hoặc 17 mm theo thiết kế đã duyệt.
 - Giao thức này kiểm tra hình học *bản thử*, không phải xác nhận cấu tạo tủ hay phát hành CNC.
 
+
+## Kết quả kiểm thử GitHub xác nhận
+
+- [Workflow #226 — Linux + Windows thành công](https://github.com/thangaao1997-sys/CabinetMakerPro/actions/runs/41368940671)
+- Python: 88 kiểm thử trên mỗi hệ điều hành.
+- Ruby mô phỏng Self-test: 11/11 tình huống (thành công, từ chối file đã có nội dung, file đã lưu, khóa, edit context, lỗi dựng và lỗi hủy giao dịch).
+- RBZ phát hành: `AI_IDEA_V192_ALPHA_RBZ`.
+- Windows Starter: `AI_IDEA_V192_WINDOWS_STARTER`.
+
+**Chưa kiểm thử trong phiên SketchUp 2025 thật.**
