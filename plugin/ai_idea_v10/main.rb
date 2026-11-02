@@ -30,6 +30,13 @@ module AIIDEA
         UI.messagebox("AI IDEA model audit failed: #{e.class}: #{e.message}")
       end
     end
+    UI.menu('Extensions').add_item('AI IDEA - Export DRAFT audit report (JSON)') do
+      begin
+        AIIDEA::ModelAudit.export_gui
+      rescue StandardError => e
+        UI.messagebox("AI IDEA audit export failed: #{e.class}: #{e.message}")
+      end
+    end
     UI.menu('Extensions').add_item('AI IDEA - Self-test in EMPTY model (ABORT)') do
       begin
         AIIDEA::SelfTest.run_gui

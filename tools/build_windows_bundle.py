@@ -33,11 +33,12 @@ SOURCES = (
     "V18_INTEGRITY.md",
     "V19_GEOMETRY_FINGERPRINT.md",
     "V192_SKETCHUP_SELFTEST.md",
+    "V193_AUDIT_REPORT.md",
     "windows/AI_IDEA_CHECK.cmd",
 )
 DESTINATIONS = {
     "windows/AI_IDEA_CHECK.cmd": "AI_IDEA_CHECK.cmd",
-    "V192_SKETCHUP_SELFTEST.md": "README_WINDOWS.md",
+    "V193_AUDIT_REPORT.md": "README_WINDOWS.md",
 }
 STAMP = (2026, 1, 1, 0, 0, 0)
 
@@ -56,7 +57,7 @@ def build_bundle(output, rbz, root=ROOT):
             raise ValueError("Missing or linked bundle source: " + rel)
         target = DESTINATIONS.get(rel, rel)
         entries.append((target, source.read_bytes()))
-    entries.append(("AI_IDEA_V192_ALPHA.rbz", rbz.read_bytes()))
+    entries.append(("AI_IDEA_V193_ALPHA.rbz", rbz.read_bytes()))
     names = [name for name, _ in entries]
     if len(names) != len(set(names)):
         raise ValueError("Duplicate starter archive member")
@@ -85,7 +86,7 @@ def build_bundle(output, rbz, root=ROOT):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--rbz", required=True)
-    parser.add_argument("--output", default="dist/AI_IDEA_V192_WINDOWS_STARTER.zip")
+    parser.add_argument("--output", default="dist/AI_IDEA_V193_WINDOWS_STARTER.zip")
     args = parser.parse_args()
     print(build_bundle(args.output, args.rbz))
 
