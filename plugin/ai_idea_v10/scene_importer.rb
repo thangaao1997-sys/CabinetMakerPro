@@ -90,9 +90,13 @@ module AIIDEA
           raise 'Face creation failed' unless face
           face.reverse! if face.normal.z<0
           face.pushpull(size[2])
+          actual_geometry = AIIDEA::GeometryFingerprint.signature(group.entities)
+          expected_geometry = AIIDEA::GeometryFingerprint.expected_box_signature(
+            obj['size_mm']['x'], obj['size_mm']['y'], obj['size_mm']['z'])
+          raise 'Panel geometry does not match requested rectangular prism' unless actual_geometry == expected_geometry
           group.transform!(Geom::Transformation.translation(pos))
           group.set_attribute('AI_IDEA','expected_part_transform',group.transformation.to_a)
-          group.set_attribute('AI_IDEA','geometry_sha256',AIIDEA::GeometryFingerprint.signature(group.entities))
+          group.set_attribute('AI_IDEA','geometry_sha256',actual_geometry)
         end
         model.commit_operation
         root
