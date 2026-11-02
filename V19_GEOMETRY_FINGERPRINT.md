@@ -38,3 +38,11 @@ Plugin chỉ làm việc với mô hình thử **mới, chưa lưu, trống và 
 7. Kiểm tra thêm việc khóa thiết kế và thử Undo thao tác import. Không thử trong file khách hàng.
 
 **Không dùng để phát hành bảng cắt hoặc CNC.** Cấu tạo hậu, đế, liên kết thùng, nẹp, chiều vân và phụ kiện vẫn phải có hồ sơ xưởng xác nhận.
+
+## Kiểm tra đầu ra dựng hình độc lập (V1.9.1)
+
+Trước khi lưu Group của mỗi tấm, Plugin tạo một dấu vân tay **hình hộp lý thuyết gồm sáu mặt và mười hai cạnh**, dựa trên kích thước X/Y/Z từ JSON. Sau lệnh PushPull, dấu vân tay của hình học thực tế **phải trùng** kết quả lý thuyết. Nếu có cạnh/mặt thừa, thiếu, hoặc hình học không đúng, Plugin hủy toàn bộ giao dịch nhập.
+
+Điểm này độc lập với dấu vân tay baseline của chính hình học sau khi nhập; nó nhằm tránh việc sai hình ngay từ đầu rồi vẫn tự ghi baseline hợp lệ. Kiểm thử mock có cả tình huống thêm cạnh bên trong mà không thay đổi kích thước bao ngoài và yêu cầu `abort_operation` thành công.
+
+**Giới hạn:** Cấu tạo 5 tấm vẫn chỉ là giả định dựng nháp, chưa có phương án thùng/hậu/chân tủ được duyệt. Việc SketchUp 2025 thật tạo chính xác số mặt/cạnh như mong đợi vẫn cần kiểm thử trên máy.
