@@ -19,6 +19,7 @@ EXPECTED = {
     "ai_idea_v10/diagnostics.rb": "plugin/ai_idea_v10/diagnostics.rb",
     "ai_idea_v10/model_audit.rb": "plugin/ai_idea_v10/model_audit.rb",
     "ai_idea_v10/geometry_fingerprint.rb": "plugin/ai_idea_v10/geometry_fingerprint.rb",
+    "ai_idea_v10/self_test.rb": "plugin/ai_idea_v10/self_test.rb",
 }
 MAX_COMPRESSED_BYTES = 2_000_000
 MAX_EXTRACTED_BYTES = 2_000_000
@@ -40,7 +41,7 @@ def inspect_rbz(archive_path, source_root=None):
             members = archive.infolist()
             names = [item.filename for item in members]
             if len(members) != len(EXPECTED) or set(names) != set(EXPECTED):
-                raise PreflightError("RBZ must contain exactly the expected loader and five Ruby files")
+                raise PreflightError("RBZ must contain exactly the expected loader and six Ruby files")
             if len(names) != len(set(names)):
                 raise PreflightError("RBZ contains duplicate names")
             if any(item.is_dir() or item.flag_bits & 1 for item in members):
