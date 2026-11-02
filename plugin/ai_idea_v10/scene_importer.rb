@@ -74,6 +74,7 @@ module AIIDEA
         root.set_attribute('AI_IDEA','expected_parts_count',scene['objects'].length)
         # Persist original placement to detect subsequent movement/rotation.
         root.set_attribute('AI_IDEA','expected_root_transform',root.transformation.to_a)
+        root.set_attribute('AI_IDEA','expected_root_name',root.name)
         scene['objects'].each do |obj|
           pos=%w[x y z].map{|k|obj['origin_mm'][k].mm}
           size=%w[x y z].map{|k|obj['size_mm'][k].mm}
@@ -83,11 +84,13 @@ module AIIDEA
           group.set_attribute('AI_IDEA','material',obj['material'])
           group.set_attribute('AI_IDEA','expected_size_mm',%w[x y z].map{|axis|obj['size_mm'][axis]})
           group.set_attribute('AI_IDEA','expected_origin_mm',%w[x y z].map{|axis|obj['origin_mm'][axis]})
+          group.set_attribute('AI_IDEA','expected_part_id',obj['id'])
           face=group.entities.add_face([[0,0,0],[size[0],0,0],[size[0],size[1],0],[0,size[1],0]])
           raise 'Face creation failed' unless face
           face.reverse! if face.normal.z<0
           face.pushpull(size[2])
           group.transform!(Geom::Transformation.translation(pos))
+          group.set_attribute('AI_IDEA','expected_part_transform',group.transformation.to_a)
         end
         model.commit_operation
         root
