@@ -2,6 +2,7 @@
 # AI IDEA draft scene importer: only into a new, unsaved, empty model.
 # No production approval, no CNC, and no remote network actions.
 require 'json'
+require_relative 'geometry_fingerprint'
 module AIIDEA
   module SceneImporter
     module_function
@@ -91,6 +92,7 @@ module AIIDEA
           face.pushpull(size[2])
           group.transform!(Geom::Transformation.translation(pos))
           group.set_attribute('AI_IDEA','expected_part_transform',group.transformation.to_a)
+          group.set_attribute('AI_IDEA','geometry_sha256',AIIDEA::GeometryFingerprint.signature(group.entities))
         end
         model.commit_operation
         root
