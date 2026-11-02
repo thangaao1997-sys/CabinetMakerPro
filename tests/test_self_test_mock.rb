@@ -83,8 +83,9 @@ end
 class SmokeModel
   attr_accessor :path,:active_path,:design_locked
   attr_reader :entities,:started,:aborted,:committed
-  def initialize(fail_geometry:false)
+  def initialize(fail_geometry:false, abort_ok:true)
     @fail_geometry=fail_geometry
+    @abort_ok=abort_ok
     @entities=SmokeEntities.new(self)
     @path=''
     @active_path=nil
@@ -101,7 +102,8 @@ class SmokeModel
   def start_operation(*);@started=true;true;end
   def abort_operation
     @aborted=true
-    @entities.groups.clear
+    @entities.groups.clear if @abort_ok
+    @abort_ok
   end
   def commit_operation;@committed=true;end
 end
@@ -180,4 +182,12 @@ Sketchup.active_model=confirmed
 UI.response=IDYES
 report=AIIDEA::SelfTest.run_gui
 expect('10 UI confirmed disposable test') { report['status']=='passed' && confirmed.aborted && confirmed.entities.to_a.empty? }
-puts 'AI IDEA disposable SketchUp self-test mock: 10/10'
+rollback_failed=SmokeModel.new(abort_ok:false)
+rejected=false
+begin
+  AIIDEA::SelfTest.run(rollback_failed)
+rescue RuntimeError => e
+  rejected=e.message.include?('did not confirm the rollback')
+end
+expect('11 abort failure is never reported as success') { rejected && rollback_failed.aborted && !rollback_failed.entities.to_a.empty? }
+puts 'AI IDEA disposable SketchUp self-test mock: 11/11'
